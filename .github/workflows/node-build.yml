@@ -11,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x, 22.x]
+        node-version: [22.x]
 
     steps:
     - uses: actions/checkout@v4
@@ -32,3 +32,9 @@ jobs:
         name: dist
         path: |
           dist
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          dist/Pluralchum.plugin.js
