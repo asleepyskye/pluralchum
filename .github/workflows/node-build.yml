@@ -1,8 +1,9 @@
 name: NodeJS
 
 on:
-  push:
-    branches: [ "dev" ]
+  release:
+    types:
+      - released
 
 jobs:
   build:
@@ -24,3 +25,10 @@ jobs:
       run: |
         npm install
         npm run build
+        
+    - name: Archive build
+      uses: actions/upload-artifact@v4
+      with:
+        name: dist
+        path: |
+          dist
