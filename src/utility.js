@@ -188,4 +188,43 @@ export function generatePopoutBioComponents(bio){
   return scrollerContainer;
 }
 
+//this really could be moved to components, and it should be made more modular, but it'll work for now
+export function generateUserModalInner(args){
+  const tabBarClasses = BdApi.Webpack.getByKeys("container", "tabBar", "tabBarItem");
+  const otherTabBarClasses = BdApi.Webpack.getByKeys("top", "item", "selected", "themed");
+  const classes = {
+    tabBar: tabBarClasses?.tabBar ?? "tabBar_d1d9f3",
+    top: otherTabBarClasses?.top ?? "top_b3f026",
+    tabBarItem: tabBarClasses?.tabBarItem ?? "tabBarItem_d1d9f3",
+    item: otherTabBarClasses?.item ?? "item_b3f026",
+    themed: otherTabBarClasses?.themed ?? "themed_b3f026",
+    selected: otherTabBarClasses?.selected ?? "selected_b3f026"
+  };
+
+  const [selectedSection, setSelectedSection] = BdApi.React.useState("PLURALCHUM_MEMBER_INFO");
+  const handleTabSelect = (tabId) => {
+      setSelectedSection(tabId);
+  };
+
+  const tabs =[
+    BdApi.React.createElement("div", {
+      className: `${classes.tabBarItem} ${classes.item} ${classes.themed} ${selectedSection === "PLURALCHUM_MEMBER_INFO" ? classes.selected : ""}`, 
+      role: "tab", 
+      tabindex: `${selectedSection === "PLURALCHUM_MEMBER_INFO" ? 0 : -1}`,
+      "data-tab-id": "PLURALCHUM_MEMBER_INFO",
+      onClick: () => handleTabSelect("PLURALCHUM_MEMBER_INFO")
+    }, "Member Info"),
+    BdApi.React.createElement("div", {
+      className: `${classes.tabBarItem} ${classes.item} ${classes.themed} ${selectedSection === "PLURALCHUM_SYSTEM_INFO" ? classes.selected : ""}`, 
+      role: "tab", 
+      tabindex: `${selectedSection === "PLURALCHUM_SYSTEM_INFO" ? 0 : -1}`,
+      "data-tab-id": "PLURALCHUM_SYSTEM_INFO",
+      onClick: () => handleTabSelect("PLURALCHUM_SYSTEM_INFO")
+    }, "System Info")
+  ];
+  const tabBar = BdApi.React.createElement("div", {className: `${classes.tabBar} ${classes.top}`, role:"tablist"}, tabs);
+
+  return [tabBar, generateBioComponents(selectedSection === "PLURALCHUM_MEMBER_INFO" ? args.user.id.userProfile.bio : args.user.id.userProfile.system_bio)];
+}
+
 export const pluginName = 'Pluralchum';
