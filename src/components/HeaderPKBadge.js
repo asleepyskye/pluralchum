@@ -2,14 +2,11 @@ const React = BdApi.React;
 import { ThreeDots } from 'svg-loaders-react';
 import { ProfileStatus } from '../profiles.js';
 
-export default function PopoutPKBadge({ profileMap, userHash, profile }) {
+export default function PopoutPKBadge({ cache, userHash, profile }) {
   const status = profile.status;
 
   let onClick = function () {
-    profileMap.update(userHash, function (profile) {
-      profile.status = ProfileStatus.Stale;
-      return profile;
-    });
+    cache.updateMemberStatus(hash, ProfileStatus.Stale);
   };
 
   const linkStyle = {

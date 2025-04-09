@@ -9,8 +9,8 @@ function isBlockedProfile(profile) {
   return profile?.sender && isBlocked(profile.sender);
 }
 
-function MessageProxyInner({ profileMap, unblockedMap, messageNode, message, label, compact }) {
-  let [profile] = hookupProfile(profileMap, message.author);
+function MessageProxyInner({ cache, unblockedMap, messageNode, message, label, compact }) {
+  let profile = hookupProfile(cache, message.author);
 
   if (isBlockedProfile(profile)) {
     return (
@@ -22,19 +22,17 @@ function MessageProxyInner({ profileMap, unblockedMap, messageNode, message, lab
         compact={compact}
       />
     );
-    // return messageNode;
   } else {
     return messageNode;
   }
 }
 
-export default function MessageProxy({ profileMap, enabledCell, unblockedMap, messageNode, message, label, compact }) {
+export default function MessageProxy({ cache, enabledCell, unblockedMap, messageNode, message, label, compact }) {
   let [enabled] = hookupValueCell(enabledCell);
-
   if (enabled && message) {
     return (
       <MessageProxyInner
-        profileMap={profileMap}
+        cache={cache}
         unblockedMap={unblockedMap}
         messageNode={messageNode}
         message={message}

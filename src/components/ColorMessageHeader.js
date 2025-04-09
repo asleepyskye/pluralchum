@@ -84,7 +84,7 @@ function getColour(colourPref, member, guildId, settings, defaultSystemColourToM
   }
 }
 
-function createHeaderChildren(message, guildId, settings, profileMap, profile, userHash, onClickUsername) {
+function createHeaderChildren(message, guildId, settings, cache, profile, userHash, onClickUsername) {
   let { memberColourPref, tagColourPref } = settings;
 
   let { username, memberTag } = getUsername(settings.useServerNames, message.author, profile);
@@ -100,7 +100,7 @@ function createHeaderChildren(message, guildId, settings, profileMap, profile, u
       {doSysTag ? ' ' : null}
       {doSysTag ? <NameSegment colour={tagColour} name={memberTag} /> : null}
     </span>,
-    <HeaderPKBadge profileMap={profileMap} userHash={userHash} profile={profile} />,
+    <HeaderPKBadge cache={cache} userHash={userHash} profile={profile} />,
   ];
 }
 
@@ -119,7 +119,7 @@ export default function ColorMessageHeader({
     props: {
       ...messageHeader.props,
       children: [
-        createHeaderChildren(message, guildId, settings, profileMap, profile, userHash, onClickUsername),
+        createHeaderChildren(message, guildId, settings, cache, profile, userHash, onClickUsername),
         // Triggering the popout with correct position is hard, so we just leave the original
         // header here (but hide it using CSS) so the popout can take its position.
         <div className='pk-hidden'>{messageHeader.props.children}</div>,

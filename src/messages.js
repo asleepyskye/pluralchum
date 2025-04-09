@@ -13,12 +13,12 @@ import MessageContentProxy from './components/MessageContentProxy.js';
 import MessageHeaderProxy from './components/MessageHeaderProxy.js';
 import MessageProxy from './components/MessageProxy.js';
 
-export function patchMessageContent(settings, profileMap, enabled) {
+export function patchMessageContent(settings, cache, enabled) {
   BdApi.Patcher.instead(pluginName, MessageContent, 'type', function (ctx, [props], f) {
     return (
       <MessageContentProxy
         settingsCell={settings}
-        profileMap={profileMap}
+        cache={cache}
         enabledCell={enabled}
         messageContent={f.call(ctx, props)}
         message={props.message}
@@ -27,7 +27,7 @@ export function patchMessageContent(settings, profileMap, enabled) {
   });
 }
 
-export function patchMessageHeader(settings, profileMap, enabled) {
+export function patchMessageHeader(settings, cache, enabled) {
   BdApi.Patcher.instead(pluginName, MessageHeader, messageHeader, function (ctx, [props], f) {
     // Props can sometimes be undefined.
     if (!props) {
@@ -36,7 +36,7 @@ export function patchMessageHeader(settings, profileMap, enabled) {
     return (
       <MessageHeaderProxy
         settingsCell={settings}
-        profileMap={profileMap}
+        cache={cache}
         enabledCell={enabled}
         messageHeader={f(props)}
         message={props.message}
@@ -47,13 +47,13 @@ export function patchMessageHeader(settings, profileMap, enabled) {
   });
 }
 
-export function patchMessage(profileMap, enabled) {
+export function patchMessage(cache, enabled) {
   let unblockedMap = new MapCell({});
 
   BdApi.Patcher.instead(pluginName, Message, blocker, function (ctx, [props], f) {
     return (
       <MessageProxy
-        profileMap={profileMap}
+        cache={cache}
         enabledCell={enabled}
         unblockedMap={unblockedMap}
         messageNode={f.call(ctx, props)}

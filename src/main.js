@@ -7,6 +7,7 @@ import { settingsPanel } from './settingsPanel.js';
 import { ValueCell, pluginName } from './utility.js';
 import { checkForUpdates, upgradeCache } from './update.js';
 import { patchBotPopout } from './popout.js';
+import { PluralchumCache } from './cache.js';
 
 const version = '2.6.0';
 
@@ -18,22 +19,23 @@ export class Pluralchum {
 
     console.log('[PLURALCHUM] Loaded settings');
 
-    this.profileMap = initializeProfileMap();
+    this.cache = new PluralchumCache();
+    this.cache.init();
 
     console.log('[PLURALCHUM] Loaded PK data');
 
-    upgradeCache(this.settings, this.profileMap, version);
+    //upgradeCache(this.settings, this.profileMap, version); -> update this
 
     requireEula(this.settings);
 
     this.enabled = new ValueCell(true);
 
-    patchMessageContent(this.settings, this.profileMap, this.enabled);
-    patchMessageHeader(this.settings, this.profileMap, this.enabled);
-    patchMessage(this.profileMap, this.enabled);
+    patchMessageContent(this.settings, this.cache, this.enabled);
+    patchMessageHeader(this.settings, this.cache, this.enabled);
+    patchMessage(this.cache, this.enabled);
     this.patches.push(patchEditMenuItem());
     patchEditAction();
-    patchBotPopout(this.profileMap);
+    patchBotPopout(this.cache);
 
     checkForUpdates(version);
   }
@@ -43,7 +45,8 @@ export class Pluralchum {
 
     for (let i = this.patches.length - 1; i >= 0; i--) this.patches[i]();
 
-    purgeOldProfiles(this.profileMap);
+    this.cache.purgeOld();
+    this.cache.close();
 
     BdApi.Patcher.unpatchAll(pluginName);
   }

@@ -7,7 +7,7 @@ import LoadingMessageHeader from './LoadingMessageHeader.js';
 
 export default function MessageHeaderProxy({
   settingsCell,
-  profileMap,
+  cache,
   enabledCell,
   messageHeader,
   message,
@@ -15,14 +15,14 @@ export default function MessageHeaderProxy({
   onClickUsername,
 }) {
   let [settings] = hookupValueCell(settingsCell);
-  let [profile] = hookupProfile(profileMap, message.author);
+  let profile = hookupProfile(cache, message.author);
   let [enabled] = hookupValueCell(enabledCell);
 
   if (!enabled || !isProxiedMessage(message)) {
     return messageHeader;
   }
 
-  updateProfile(message, profileMap);
+  updateProfile(message, cache);
 
   let userHash = getUserHash(message.author);
 
@@ -30,7 +30,7 @@ export default function MessageHeaderProxy({
     return (
       <ColoredMessageHeader
         settings={settings}
-        profileMap={profileMap}
+        cache={cache}
         profile={profile}
         userHash={userHash}
         messageHeader={messageHeader}
@@ -44,7 +44,7 @@ export default function MessageHeaderProxy({
       <LoadingMessageHeader
         messageHeader={messageHeader}
         profile={{ status: ProfileStatus.Requesting }}
-        profileMap={profileMap}
+        cache={cache}
         userHash={userHash}
       />
     );

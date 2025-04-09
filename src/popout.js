@@ -36,7 +36,7 @@ function isValidHttpUrl(string) {
   return url.protocol === 'http:' || url.protocol === 'https:';
 }
 
-export function patchBotPopout(profileMap) {
+export function patchBotPopout(cache) {
   BdApi.Patcher.instead(pluginName, UserProfileStore, 'getGuildMemberProfile', function (ctx, [userId, guildId], f) {
     if (userId && typeof userId !== 'string' && userId.userProfile) {
       return userId.userProfile;
@@ -76,7 +76,7 @@ export function patchBotPopout(profileMap) {
     return ret;
   });
 
-  BdApi.Patcher.instead(pluginName, BotPopout, viewBotPopout, function (_, [args], f) {
+  BdApi.Patcher.instead(pluginName, BotPopout, viewBotPopout, async function (_, [args], f) {
     let message = MessageStore.getMessage(args.channelId, args.messageId);
 
     if (!message) {
@@ -84,38 +84,38 @@ export function patchBotPopout(profileMap) {
     }
 
     let userHash = getUserHash(message.author);
-    let profile = profileMap.get(userHash);
+    let member = await cache.getMember(userHash);
 
-    if (!profile || profile?.status === ProfileStatus.NotPK) {
+    if (!member || member?.status === ProfileStatus.NotPK) {
       return f(args);
     }
+    let system = await cache.getSystem(member.system);
 
     let userProfile = {
-      bio: profile.description ?? '',
-      system_bio: profile.system_description ?? '',
+      bio: member.description,
       userId: args.user.id,
       guildId: args.guildId,
-      pronouns: profile.pronouns,
+      pronouns: member.pronouns,
     };
 
-    if (profile.color) {
-      userProfile.accentColor = Number('0x' + profile.color.substring(1));
+    if (member.color) {
+      userProfile.accentColor = Number('0x' + member.color.substring(1));
     } else {
       userProfile.accentColor = Number('0x5b63f4');
     }
 
-    if (profile.banner) {
-      userProfile.banner = profile.banner;
+    if (member.banner) {
+      userProfile.banner = member.banner;
     }
 
     let user = new User({
-      username: profile.system_name ?? profile.system,
-      globalName: profile.name,
+      username: system.name ?? system.id,
+      globalName: member.name,
       bot: true,
-      discriminator: profile.system,
+      discriminator: system.id,
     });
 
-    user.id = { userProfile, user, isPK: true };
+    user.id = { userProfile, user, system, isPK: true };
 
     if (args.user.avatar) {
       user.avatar = 'https://cdn.discordapp.com/avatars/' + args.user.id + '/' + args.user.avatar + '.webp';
@@ -208,7 +208,7 @@ export function patchBotPopout(profileMap) {
           ]}
           sectionContents={{
             PLURALCHUM_MEMBER_INFO: <UserModalBio content={args.user.id.userProfile.bio} />,
-            PLURALCHUM_SYSTEM_INFO: <UserModalBio content={args.user.id.userProfile.system_bio} />,
+            PLURALCHUM_SYSTEM_INFO: <UserModalBio content={args.user.id.system.description} />,
           }}
         />
       );

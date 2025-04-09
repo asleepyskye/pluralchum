@@ -25,34 +25,32 @@ async function httpGetAsync(url) {
 }
 
 function pkDataToProfile(data) {
-  let profile = {
-    name: data.member.name,
-    color: '#' + data.member.color,
-    tag: data.system.tag,
-    id: data.member.id,
-    system: data.system.id,
-    status: ProfileStatus.Done,
-    system_color: '#' + data.system.color,
-    sender: data.sender,
-    description: data.member.description ?? '',
-    system_description: data.system.description ?? '',
-    avatar: data.member.avatar_url ?? data.system.avatar_url,
-    banner: data.member.banner,
-    system_name: data.system.name,
-    pronouns: data.member.pronouns,
-  };
-
-  if (data.member.color === null) profile.color = '';
-
-  if (data.system.color === null) profile.system_color = '';
-
-  if (data.member.display_name) {
-    profile.name = data.member.display_name;
+  let system = {
+    id: data.system.id,
+    name: data.system.name ?? '',
+    description: data.system.description ?? '',
+    tag: data.system.tag ?? '',
+    pronouns: data.system.pronouns ?? '',
+    avatar_url: data.system.avatar_url ?? '',
+    banner: data.system.banner ?? '',
+    color: '#' + data.system.color,
   }
+  if (data.system.color === null) system.color = '';
 
-  if (data.member.pronouns === null) profile.pronouns = '';
+  let member = {
+    hash: "",
+    name: data.member.display_name ?? data.member.name,
+    system: data.system.id,
+    color: '#' + data.member.color,
+    pronouns: data.member.pronouns ?? '',
+    avatar_url: data.member.avatar_url ?? '',
+    banner: data.member.banner ?? '',
+    description: data.member.description ?? '',
+    sender: data.sender
+  }
+  if (data.member.color === null) member.color = '';
 
-  return profile;
+  return {system, member};
 }
 
 async function pkResponseToProfile(response) {
@@ -71,19 +69,21 @@ async function getFreshProfile(message) {
   return await pkResponseToProfile(profileResponse);
 }
 
-async function updateFreshProfile(message, hash, profileMap) {
-  profileMap.update(hash, function (profile) {
-    if (profile !== null) {
-      profile.status = ProfileStatus.Updating;
-      return profile;
-    } else {
-      return { status: ProfileStatus.Requesting };
-    }
-  });
+async function updateFreshProfile(message, hash, cache) {
+  // profileMap.update(hash, function (profile) {
+  //   if (profile !== null) {
+  //     profile.status = ProfileStatus.Updating;
+  //     return profile;
+  //   } else {
+  //     return { status: ProfileStatus.Requesting };
+  //   }
+  // });
 
   let profile = await getFreshProfile(message);
-
-  profileMap.set(hash, profile);
+  let member = profile.member;
+  member.hash = hash;
+  cache.cacheMember(profile.member);
+  cache.cacheSystem(profile.system);
 }
 
 function hashCode(text) {
@@ -107,7 +107,7 @@ function shouldUpdate(profile) {
   return !profile || profile.status === ProfileStatus.Stale;
 }
 
-export async function updateProfile(message, profileMap) {
+export async function updateProfile(message, cache) {
   if (!isProxiedMessage(message)) return null;
 
   let username = message.author.username;
@@ -115,28 +115,20 @@ export async function updateProfile(message, profileMap) {
 
   let userHash = getUserHash(message.author);
 
-  let profile = profileMap.get(userHash);
+  let member = await cache.getMember(userHash);
 
-  if (shouldUpdate(profile)) {
+  if (shouldUpdate(member)) {
     console.log(`[PLURALCHUM] Requesting data for ${username} (${userHash})`);
     try {
-      await updateFreshProfile(message, userHash, profileMap);
+      await updateFreshProfile(message, userHash, cache);
     } catch (e) {
       console.log(`[PLURALCHUM] Error while requesting data for ${username} (${userHash}): ${e}`);
     }
   }
 }
 
-export function hookupProfile(profileMap, author) {
+export function hookupProfile(cache, author) {
   let userHash = getUserHash(author);
-  const [profile, setProfile] = React.useState(profileMap.get(userHash));
-  React.useEffect(function () {
-    return profileMap.addListener(function (key, value) {
-      if (key === userHash) {
-        setProfile(value);
-      }
-    });
-  });
-
-  return [profile, setProfile];
+  let profile = cache.getMember(userHash);
+  return profile;
 }

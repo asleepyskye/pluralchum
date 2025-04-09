@@ -17,16 +17,16 @@ function shouldColor(settings, profile) {
   );
 }
 
-export default function MessageContentProxy({ settingsCell, profileMap, enabledCell, messageContent, message }) {
+export default function MessageContentProxy({ settingsCell, cache, enabledCell, messageContent, message }) {
   let [settings] = hookupValueCell(settingsCell);
-  let [profile] = hookupProfile(profileMap, message.author);
+  let profile = hookupProfile(cache, message.author);
   let [enabled] = hookupValueCell(enabledCell);
 
   if (!enabled || !isProxiedMessage(message)) {
     return messageContent;
   }
 
-  updateProfile(message, profileMap);
+  updateProfile(message, cache);
 
   if (shouldColor(settings, profile)) {
     return <ColorMessageContent color={profile.color} messageContent={messageContent} />;
