@@ -1,4 +1,4 @@
-import { hookupProfile } from '../profiles';
+import { hookupMember } from '../profiles';
 import { hookupValueCell } from '../utility';
 import BlockedMessage from './BlockedMessage';
 let isBlocked = BdApi.Webpack.getByKeys('isBlocked').isBlocked;
@@ -10,9 +10,9 @@ function isBlockedProfile(profile) {
 }
 
 function MessageProxyInner({ cache, unblockedMap, messageNode, message, label, compact }) {
-  let profile = hookupProfile(cache, message.author);
+  let member = hookupMember(cache, message.author);
 
-  if (isBlockedProfile(profile)) {
+  if (isBlockedProfile(member)) {
     return (
       <BlockedMessage
         unblockedMap={unblockedMap}

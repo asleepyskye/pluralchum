@@ -36,37 +36,7 @@ export function initializeSettings() {
   return settings;
 }
 
-function filterDoneProfiles(entries) {
-  const filtered = entries.filter(([_, profile]) => profile.status === ProfileStatus.Done);
-  return Object.fromEntries(filtered);
-}
-
-export function initializeProfileMap() {
-  const key = 'profileMap';
-  let map = new MapCell(BdApi.Data.load(pluginName, key) ?? {});
-  map.addListener(function () {
-    BdApi.Data.save(pluginName, key, filterDoneProfiles(map.entries()));
-  });
-  return map;
-}
-
 function tooOld(lastUsed) {
   const expirationTime = 1000 * 60 * 60 * 24 * 30;
   return Date.now() - lastUsed > expirationTime;
-}
-
-export function purgeOldProfiles(profileMap) {
-  if (!profileMap) return;
-
-  for (const [id, profile] of profileMap.entries()) {
-    if (Object.hasOwn(profile, 'lastUsed')) {
-      if (tooOld(profile.lastUsed)) {
-        profileMap.delete(id);
-      }
-    } else {
-      profileMap.update(id, function () {
-        return { ...profile, lastUsed: Date.now() };
-      });
-    }
-  }
 }

@@ -1,5 +1,5 @@
 import './styles.js';
-import { initializeSettings, initializeProfileMap, purgeOldProfiles } from './data.js';
+import { initializeSettings } from './data.js';
 import { requireEula } from './eula.js';
 import { patchMessageContent, patchMessageHeader, patchMessage } from './messages.js';
 import { patchEditMenuItem, patchEditAction } from './edit.js';
@@ -9,6 +9,7 @@ import { checkForUpdates, upgradeCache } from './update.js';
 import { patchBotPopout } from './popout.js';
 import { PluralchumCache } from './cache.js';
 
+const Logger = BdApi.Logger;
 const version = '2.6.0';
 
 export class Pluralchum {
@@ -17,14 +18,12 @@ export class Pluralchum {
   start() {
     this.settings = initializeSettings();
 
-    console.log('[PLURALCHUM] Loaded settings');
+    Logger.log(pluginName, 'Loaded settings')
 
     this.cache = new PluralchumCache();
     this.cache.init();
 
-    console.log('[PLURALCHUM] Loaded PK data');
-
-    //upgradeCache(this.settings, this.profileMap, version); -> update this
+    Logger.log(pluginName, 'Loaded PK data');
 
     requireEula(this.settings);
 
@@ -52,7 +51,7 @@ export class Pluralchum {
   }
 
   getSettingsPanel() {
-    return settingsPanel(this.settings, this.profileMap);
+    return settingsPanel(this.settings, this.cache);
   }
 
   getName() {

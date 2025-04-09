@@ -1,5 +1,4 @@
 const { semverCompare } = BdApi.Utils;
-import { ProfileStatus } from './profiles';
 
 export async function showUpdateNotice(url) {
   let button = document.createElement('button');
@@ -18,19 +17,6 @@ export async function checkForUpdates(currentVersion) {
 
     if (semverCompare(currentVersion, latestVersion) > 0) {
       showUpdateNotice(latestRelease.html_url);
-    }
-  }
-}
-
-export function upgradeCache(settings, profileMap, currentVersion) {
-  let cacheVersion = settings.get().version;
-  if (!cacheVersion || semverCompare(cacheVersion, currentVersion) > 0) {
-    settings.update(function (s) {
-      return { ...s, version: currentVersion };
-    });
-
-    for (const [key, value] of profileMap.entries()) {
-      profileMap.set(key, { ...value, status: ProfileStatus.Stale });
     }
   }
 }

@@ -1,7 +1,7 @@
 const React = BdApi.React;
 
 import { hookupValueCell, isProxiedMessage } from '../utility.js';
-import { hookupProfile, updateProfile, ProfileStatus, getUserHash } from '../profiles.js';
+import { updateProfile, ProfileStatus, getUserHash, hookupMember } from '../profiles.js';
 import ColoredMessageHeader from './ColorMessageHeader.js';
 import LoadingMessageHeader from './LoadingMessageHeader.js';
 
@@ -15,7 +15,7 @@ export default function MessageHeaderProxy({
   onClickUsername,
 }) {
   let [settings] = hookupValueCell(settingsCell);
-  let profile = hookupProfile(cache, message.author);
+  let profile = hookupMember(cache, message.author);
   let [enabled] = hookupValueCell(enabledCell);
 
   if (!enabled || !isProxiedMessage(message)) {

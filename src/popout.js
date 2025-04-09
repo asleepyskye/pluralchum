@@ -1,6 +1,8 @@
 const React = BdApi.React;
+const Logger = BdApi.Logger;
 
 import { pluginName } from './utility.js';
+import { ProfileType } from './cache.js';
 
 const [BotPopout, viewBotPopout] = BdApi.Webpack.getWithKey(
   BdApi.Webpack.Filters.byStrings('UserProfilePopoutWrapper:'),
@@ -84,12 +86,12 @@ export function patchBotPopout(cache) {
     }
 
     let userHash = getUserHash(message.author);
-    let member = await cache.getMember(userHash);
+    let member = await cache.get(ProfileType.Member, userHash);
 
     if (!member || member?.status === ProfileStatus.NotPK) {
       return f(args);
     }
-    let system = await cache.getSystem(member.system);
+    let system = await cache.get(ProfileType.System, member.system);
 
     let userProfile = {
       bio: member.description,
@@ -137,7 +139,7 @@ export function patchBotPopout(cache) {
 
   BdApi.Webpack.waitForModule(BdApi.Webpack.Filters.byKeys('openUserProfileModal')).then(function (userProfile) {
     if (userProfile === undefined) {
-      console.error('[PLURALCHUM] Error while patching the user profile modal!');
+      Logger.error(pluginName, 'Error while patching the user profile modal!');
       return;
     }
     const Dispatcher = BdApi.Webpack.getByKeys('dispatch', 'subscribe');
@@ -159,7 +161,7 @@ export function patchBotPopout(cache) {
     defaultExport: false,
   }).then(function (OverflowMenu) {
     if (OverflowMenu === undefined) {
-      console.error('[PLURALCHUM] Error while patching OverflowMenu!');
+      Logger.error(pluginName, 'Error while patching OverflowMenu!');
       return;
     }
     BdApi.Patcher.instead(pluginName, OverflowMenu, 'Z', (ctx, [args], f) => {
@@ -192,7 +194,7 @@ export function patchBotPopout(cache) {
       defaultExport: false,
     },).then(function (UserModal) {
     if (UserModal === undefined) {
-      console.error('[PLURALCHUM] Error while patching UserModal!');
+      Logger.error(pluginName, 'Error while patching UserModal!');
       return;
     }
     BdApi.Patcher.instead(pluginName, UserModal, 'Z', (ctx, [args], f) => {

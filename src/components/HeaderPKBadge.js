@@ -6,7 +6,9 @@ export default function PopoutPKBadge({ cache, userHash, profile }) {
   const status = profile.status;
 
   let onClick = function () {
-    cache.updateMemberStatus(hash, ProfileStatus.Stale);
+    cache.update(ProfileType.Member, hash, function (profile){
+      profile.status = ProfileStatus.Stale;
+    });
   };
 
   const linkStyle = {

@@ -1,7 +1,7 @@
 const React = BdApi.React;
 
 import { hookupValueCell, isProxiedMessage } from '../utility';
-import { ProfileStatus, updateProfile, hookupProfile } from '../profiles';
+import { ProfileStatus, updateProfile, hookupMember } from '../profiles';
 import { acceptableContrast } from '../contrast';
 import ColorMessageContent from './ColorMessageContent';
 
@@ -19,7 +19,7 @@ function shouldColor(settings, profile) {
 
 export default function MessageContentProxy({ settingsCell, cache, enabledCell, messageContent, message }) {
   let [settings] = hookupValueCell(settingsCell);
-  let profile = hookupProfile(cache, message.author);
+  let profile = hookupMember(cache, message.author);
   let [enabled] = hookupValueCell(enabledCell);
 
   if (!enabled || !isProxiedMessage(message)) {

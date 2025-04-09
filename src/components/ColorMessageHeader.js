@@ -55,6 +55,8 @@ function NameSegment({ colour, name }) {
 }
 
 function getColour(colourPref, member, guildId, settings, defaultSystemColourToMemberColour) {
+  //TODO: UPDATE THIS
+  return member?.color ?? '';
   let colour;
 
   switch (colourPref) {
@@ -106,7 +108,7 @@ function createHeaderChildren(message, guildId, settings, cache, profile, userHa
 
 export default function ColorMessageHeader({
   settings,
-  profileMap,
+  cache,
   profile,
   userHash,
   messageHeader,

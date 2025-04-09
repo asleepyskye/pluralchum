@@ -138,12 +138,12 @@ function accessibilityPanel(settings) {
   };
 }
 
-function cachePanel(profileMap) {
+function cachePanel(cache) {
   let resetCacheBtn = (
     <button
       className='button_dd4f85 lookFilled_dd4f85 colorBrand_dd4f85 sizeSmall_dd4f85 grow_dd4f85'
       style={{ textAlign: 'center', width: '100%' }}
-      onClick={() => profileMap.clear()}
+      onClick={() => cache.clear()}
     >
       Delete Cache
     </button>
@@ -168,9 +168,9 @@ function cachePanel(profileMap) {
   };
 }
 
-export function settingsPanel(settings, profileMap) {
+export function settingsPanel(settings, cache) {
   return BdApi.UI.buildSettingsPanel({
-    settings: [title(), preferencesPanel(settings), accessibilityPanel(settings), cachePanel(profileMap)],
+    settings: [title(), preferencesPanel(settings), accessibilityPanel(settings), cachePanel(cache)],
     onChange: (_category, id, value) => settings.update(s => Object.assign({}, s, { [id]: value })),
   });
 }

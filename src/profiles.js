@@ -1,6 +1,8 @@
 const React = BdApi.React;
+const Logger = BdApi.Logger;
 
-import { sleep, isProxiedMessage } from './utility';
+import { ProfileType } from './cache';
+import { sleep, isProxiedMessage, pluginName } from './utility';
 
 export const ProfileStatus = {
   Done: 'DONE',
@@ -34,6 +36,7 @@ function pkDataToProfile(data) {
     avatar_url: data.system.avatar_url ?? '',
     banner: data.system.banner ?? '',
     color: '#' + data.system.color,
+    status: ProfileStatus.Done
   }
   if (data.system.color === null) system.color = '';
 
@@ -46,7 +49,8 @@ function pkDataToProfile(data) {
     avatar_url: data.member.avatar_url ?? '',
     banner: data.member.banner ?? '',
     description: data.member.description ?? '',
-    sender: data.sender
+    sender: data.sender,
+    status: ProfileStatus.Done
   }
   if (data.member.color === null) member.color = '';
 
@@ -55,9 +59,8 @@ function pkDataToProfile(data) {
 
 async function pkResponseToProfile(response) {
   if (response.status == 200) {
-    console.log('RESPONSE');
     let data = await response.json();
-    console.log(data);
+    Logger.debug(pluginName, "Response: ", data);
     return pkDataToProfile(data);
   } else if (response.status == 404) {
     return { status: ProfileStatus.NotPK };
@@ -70,20 +73,25 @@ async function getFreshProfile(message) {
 }
 
 async function updateFreshProfile(message, hash, cache) {
-  // profileMap.update(hash, function (profile) {
-  //   if (profile !== null) {
-  //     profile.status = ProfileStatus.Updating;
-  //     return profile;
-  //   } else {
-  //     return { status: ProfileStatus.Requesting };
-  //   }
-  // });
+  let preexisting = await cache.get(ProfileType.Member, hash);
+  if(preexisting){
+    cache.update(ProfileType.Member, hash, 
+      function(profile) {
+        profile.status = ProfileStatus.Updating;
+        return profile;
+    });
+  }else{
+    await cache.cache(ProfileType.Member, {
+      hash: hash,
+      status: ProfileStatus.Requesting
+    });
+  }
 
   let profile = await getFreshProfile(message);
   let member = profile.member;
   member.hash = hash;
-  cache.cacheMember(profile.member);
-  cache.cacheSystem(profile.system);
+  cache.cache(ProfileType.Member, profile.member);
+  cache.cache(ProfileType.System, profile.system);
 }
 
 function hashCode(text) {
@@ -115,20 +123,22 @@ export async function updateProfile(message, cache) {
 
   let userHash = getUserHash(message.author);
 
-  let member = await cache.getMember(userHash);
+  let member = await cache.get(ProfileType.Member, userHash);
+  let system = undefined;
+  if(member) system = await cache.get(ProfileType.System, member?.system);
 
   if (shouldUpdate(member)) {
-    console.log(`[PLURALCHUM] Requesting data for ${username} (${userHash})`);
+    Logger.log(pluginName, `Requesting data for ${username} (${userHash})`);
     try {
       await updateFreshProfile(message, userHash, cache);
     } catch (e) {
-      console.log(`[PLURALCHUM] Error while requesting data for ${username} (${userHash}): ${e}`);
+      Logger.log(pluginName, `Error while requesting data for ${username} (${userHash}): ${e}`);
     }
   }
 }
 
-export function hookupProfile(cache, author) {
+export async function hookupMember(cache, author) {
   let userHash = getUserHash(author);
-  let profile = cache.getMember(userHash);
-  return profile;
+  let member = await cache.get(ProfileType.Member, userHash);
+  return member;
 }
